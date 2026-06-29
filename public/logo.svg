@@ -1,0 +1,20 @@
+<svg width="240" height="80" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- A + Building icon -->
+  <g>
+    <!-- Letter A shape -->
+    <path d="M20 60 L36 20 L52 60" stroke="#0B2344" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <line x1="26" y1="45" x2="46" y2="45" stroke="#0B2344" stroke-width="3" stroke-linecap="round"/>
+    <!-- Gold roof triangle inside A -->
+    <path d="M36 28 L30 40 L42 40 Z" fill="#C79A3B"/>
+    <!-- Building columns (gold) -->
+    <rect x="44" y="30" width="4" height="20" fill="#C79A3B"/>
+    <rect x="50" y="26" width="4" height="24" fill="#0B2344"/>
+    <rect x="56" y="22" width="4" height="28" fill="#0B2344"/>
+  </g>
+  <!-- AGUIAR text -->
+  <text x="72" y="46" font-family="Georgia, serif" font-size="22" font-weight="700" fill="#0B2344" letter-spacing="2">AGUIAR</text>
+  <!-- Gold lines + IMÓVEIS -->
+  <line x1="72" y1="54" x2="90" y2="54" stroke="#C79A3B" stroke-width="1.5"/>
+  <text x="93" y="56" font-family="Georgia, serif" font-size="10" font-weight="600" fill="#C79A3B" letter-spacing="4">IMÓVEIS</text>
+  <line x1="168" y1="54" x2="186" y2="54" stroke="#C79A3B" stroke-width="1.5"/>
+</svg>
