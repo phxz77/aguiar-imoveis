@@ -147,13 +147,26 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
     };
 
     try {
+      let savedSlug: string | undefined;
+
       if (mode === "create") {
         const created = await adminCreateProperty(data);
         if (!created) throw new Error("Erro ao criar imóvel");
+        savedSlug = created.slug;
       } else if (property) {
         const updated = await adminUpdateProperty(property.id, data);
         if (!updated) throw new Error("Erro ao atualizar imóvel");
+        savedSlug = updated.slug;
       }
+
+      // Limpa o cache da página pública imediatamente — sem isso, a
+      // galeria do imóvel podia mostrar fotos antigas por até 60s (ISR).
+      fetch("/api/revalidate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: savedSlug, oldSlug: property?.slug }),
+      }).catch((e) => console.warn("[Revalidate] Falhou ao atualizar cache:", e));
+
       setSaved(true);
       setTimeout(() => router.push("/admin/imoveis"), 1000);
     } catch (err) {
