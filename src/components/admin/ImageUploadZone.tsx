@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -30,17 +30,22 @@ interface ImageItem {
   errorMsg?: string;
 }
 
+const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB por foto
+
 interface ImageUploadZoneProps {
   images: string[];
   onChange: (images: string[]) => void;
   propertyId: string;
+  /** Notifica o pai sempre que algum upload entra/sai de andamento — usado para travar o botão Salvar. */
+  onUploadingChange?: (isUploading: boolean) => void;
 }
 
-export function ImageUploadZone({ images, onChange, propertyId }: ImageUploadZoneProps) {
+export function ImageUploadZone({ images, onChange, propertyId, onUploadingChange }: ImageUploadZoneProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [rejectionMsg, setRejectionMsg] = useState<string | null>(null);
 
   const [items, setItems] = useState<ImageItem[]>(() =>
     images.map((url, i) => ({
@@ -94,7 +99,19 @@ export function ImageUploadZone({ images, onChange, propertyId }: ImageUploadZon
 
   const processFiles = useCallback(
     (files: FileList | File[]) => {
-      const valid = Array.from(files).filter((f) => f.type.startsWith("image/"));
+      const fileArray = Array.from(files);
+      const wrongType = fileArray.filter((f) => !f.type.startsWith("image/"));
+      const tooLarge = fileArray.filter((f) => f.type.startsWith("image/") && f.size > MAX_FILE_SIZE);
+      const valid = fileArray.filter((f) => f.type.startsWith("image/") && f.size <= MAX_FILE_SIZE);
+
+      if (wrongType.length > 0 || tooLarge.length > 0) {
+        const parts: string[] = [];
+        if (wrongType.length > 0) parts.push(`${wrongType.length} arquivo(s) não são imagens`);
+        if (tooLarge.length > 0) parts.push(`${tooLarge.length} arquivo(s) acima de 15MB`);
+        setRejectionMsg(`Ignorado(s): ${parts.join(" · ")}.`);
+        setTimeout(() => setRejectionMsg(null), 6000);
+      }
+
       if (valid.length === 0) return;
 
       const newItems: ImageItem[] = valid.map((file) => ({
@@ -174,6 +191,12 @@ export function ImageUploadZone({ images, onChange, propertyId }: ImageUploadZon
   const uploadingCount = items.filter((i) => i.status === "uploading").length;
   const doneCount = items.filter((i) => i.status === "done").length;
   const errorCount = items.filter((i) => i.status === "error").length;
+
+  // Avisa o formulário pai sempre que o estado "em andamento" mudar,
+  // para que o botão Salvar fique bloqueado até todas as fotos terminarem.
+  useEffect(() => {
+    onUploadingChange?.(uploadingCount > 0);
+  }, [uploadingCount, onUploadingChange]);
 
   return (
     <div className="space-y-4">
@@ -266,6 +289,21 @@ export function ImageUploadZone({ images, onChange, propertyId }: ImageUploadZon
           </div>
         )}
       </div>
+
+      {/* Mensagem de arquivos rejeitados */}
+      <AnimatePresence>
+        {rejectionMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3.5 py-2.5 text-sm text-red-700"
+          >
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            {rejectionMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Status bar */}
       {items.length > 0 && (
@@ -454,10 +492,11 @@ export function ImageUploadZone({ images, onChange, propertyId }: ImageUploadZon
 
       {/* Dicas */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#0B2344]/35">
-        <span>✓ Sem limite de fotos</span>
+        <span>✓ Sem limite de fotos · até 15MB cada</span>
         <span>✓ Upload simultâneo de várias fotos</span>
         <span>✓ A primeira foto é a capa do card</span>
         <span>✓ Arraste para reordenar com as setas</span>
+        <span>✓ Salvar fica bloqueado até todo upload terminar</span>
       </div>
     </div>
   );

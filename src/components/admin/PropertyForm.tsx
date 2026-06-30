@@ -86,6 +86,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imagesUploading, setImagesUploading] = useState(false);
 
   // Stable property ID for image uploads
   const [propertyId] = useState(() => property?.id || generatePropertyId());
@@ -105,6 +106,14 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Trava de segurança: nunca salvar enquanto alguma foto ainda está subindo.
+    // Sem isso, fotos com upload mais lento ficariam de fora do imóvel salvo.
+    if (imagesUploading) {
+      setError("Aguarde o upload de todas as fotos terminar antes de salvar.");
+      return;
+    }
+
     setLoading(true);
 
     const data = {
@@ -201,7 +210,7 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
           </Button>
           <button
             type="submit"
-            disabled={loading || saved}
+            disabled={loading || saved || imagesUploading}
             className={cn(
               "hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
               saved
@@ -213,6 +222,8 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
               <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Salvando...</>
             ) : saved ? (
               <><CheckCircle2 className="h-4 w-4" /> Salvo!</>
+            ) : imagesUploading ? (
+              <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Enviando fotos...</>
             ) : (
               <><Save className="h-4 w-4" /> Salvar imóvel</>
             )}
@@ -376,7 +387,14 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
           images={formData.images}
           onChange={(images) => update("images", images)}
           propertyId={propertyId}
+          onUploadingChange={setImagesUploading}
         />
+        {imagesUploading && (
+          <p className="flex items-center gap-2 text-sm text-[#C79A3B] font-medium">
+            <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            Enviando fotos — o botão Salvar será liberado assim que terminar.
+          </p>
+        )}
       </Section>
 
       {/* Diferenciais */}
@@ -407,13 +425,15 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
         </Button>
         <button
           type="submit"
-          disabled={loading || saved}
+          disabled={loading || saved || imagesUploading}
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#0B2344] hover:bg-[#0B2344]/90 disabled:opacity-60 text-white font-bold px-8 py-3 rounded-xl transition-all duration-200"
         >
           {loading ? (
             <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Salvando...</>
           ) : saved ? (
             <><CheckCircle2 className="h-4 w-4 text-emerald-300" /> Salvo com sucesso!</>
+          ) : imagesUploading ? (
+            <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Enviando fotos...</>
           ) : (
             <><Save className="h-4 w-4" />{mode === "create" ? "Cadastrar imóvel" : "Salvar alterações"}</>
           )}
