@@ -10,10 +10,22 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const BUCKET = "property-images";
+const UPLOAD_TIMEOUT_MS = 45000; // 45s — evita travar para sempre se a rede engasgar
 
 export interface UploadResult {
   url: string | null;
   error?: string;
+}
+
+/** Rejeita com timeoutMsg se `promise` não resolver dentro de `ms`. */
+function withTimeout<T>(promise: Promise<T>, ms: number, timeoutMsg: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(timeoutMsg)), ms);
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
 }
 
 /**
@@ -46,11 +58,15 @@ export async function uploadPropertyImage(
   }, 220);
 
   try {
-    const { error } = await supabase.storage.from(BUCKET).upload(storagePath, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type || "image/jpeg",
-    });
+    const { error } = await withTimeout(
+      supabase.storage.from(BUCKET).upload(storagePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "image/jpeg",
+      }),
+      UPLOAD_TIMEOUT_MS,
+      "Tempo esgotado ao enviar a imagem. Verifique sua conexão e tente novamente."
+    );
 
     clearInterval(progressTimer);
 
