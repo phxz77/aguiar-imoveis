@@ -1,6 +1,10 @@
 -- ================================================================
 -- AGUIAR IMÓVEIS — Supabase Schema
 -- Execute este SQL no SQL Editor do seu projeto Supabase
+--
+-- Este script é IDEMPOTENTE: pode ser executado quantas vezes for
+-- preciso sem dar erro de "already exists" (tabelas, policies e o
+-- bucket são recriados/atualizados com segurança).
 -- ================================================================
 
 -- Extensão UUID
@@ -57,20 +61,20 @@ CREATE TRIGGER set_updated_at
   BEFORE UPDATE ON properties
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ── Row Level Security ──────────────────────────────────────────
+-- ── Row Level Security — tabela properties ──────────────────────
 ALTER TABLE properties ENABLE ROW LEVEL SECURITY;
 
--- Leitura pública (site)
+DROP POLICY IF EXISTS "properties_public_read" ON properties;
 CREATE POLICY "properties_public_read" ON properties
   FOR SELECT USING (true);
 
 -- Escrita irrestrita via anon key (para o admin)
 -- Em produção, troque por autenticação real via Supabase Auth
+DROP POLICY IF EXISTS "properties_admin_all" ON properties;
 CREATE POLICY "properties_admin_all" ON properties
   FOR ALL USING (true) WITH CHECK (true);
 
 -- ── Storage bucket ──────────────────────────────────────────────
--- Execute esta parte separada se necessário
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
   'property-images',
@@ -79,18 +83,25 @@ VALUES (
   52428800, -- 50MB por arquivo
   ARRAY['image/jpeg','image/jpg','image/png','image/webp','image/avif']
 )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
--- Políticas de storage
+-- ── Políticas de storage (storage.objects) ───────────────────────
+DROP POLICY IF EXISTS "storage_public_read" ON storage.objects;
 CREATE POLICY "storage_public_read" ON storage.objects
   FOR SELECT USING (bucket_id = 'property-images');
 
+DROP POLICY IF EXISTS "storage_admin_insert" ON storage.objects;
 CREATE POLICY "storage_admin_insert" ON storage.objects
   FOR INSERT WITH CHECK (bucket_id = 'property-images');
 
+DROP POLICY IF EXISTS "storage_admin_update" ON storage.objects;
 CREATE POLICY "storage_admin_update" ON storage.objects
   FOR UPDATE USING (bucket_id = 'property-images');
 
+DROP POLICY IF EXISTS "storage_admin_delete" ON storage.objects;
 CREATE POLICY "storage_admin_delete" ON storage.objects
   FOR DELETE USING (bucket_id = 'property-images');
 
@@ -192,3 +203,9 @@ INSERT INTO properties (
   false, true, 'Médio-alto padrão', NOW() - INTERVAL '10 days'
 )
 ON CONFLICT (slug) DO NOTHING;
+
+-- ── Verificação rápida ───────────────────────────────────────────
+-- Rode estas duas consultas separadamente para conferir se está tudo certo:
+--
+-- SELECT id, public, file_size_limit FROM storage.buckets WHERE id = 'property-images';
+-- SELECT policyname, cmd, roles FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage';
