@@ -92,13 +92,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Home className="h-4 w-4" />
             Ver site
           </a>
-          <Link
-            href="/admin/settings"
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-white/40 hover:text-white hover:bg-white/8 transition-all"
+          <span
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-white/20 cursor-not-allowed select-none"
+            title="Em breve"
           >
             <Settings className="h-4 w-4" />
             Configurações
-          </Link>
+          </span>
         </div>
       </nav>
 
