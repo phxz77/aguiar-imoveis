@@ -37,8 +37,55 @@ function sortProperties(list: Property[], sort: string): Property[] {
   }
 }
 
+/**
+ * Skeleton de página completa — usado tanto como fallback do Suspense
+ * (HTML inicial em produção, já que useSearchParams força CSR) quanto
+ * como estado de carregamento inicial. Mesma estrutura nos dois casos
+ * evita "flash" de layout ao hidratar.
+ */
+function ImoveisPageSkeleton() {
+  return (
+    <div className="min-h-screen bg-[#F7F8FA]">
+      <div className="bg-white border-b border-[#e2e6ed]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pt-24">
+          <div className="flex items-center gap-2 text-[#0B2344]/40 text-sm mb-2">
+            <span>Início</span>
+            <span>/</span>
+            <span className="text-[#0B2344] font-medium">Imóveis</span>
+          </div>
+          <h1 className="font-display font-extrabold text-[#0B2344] text-3xl sm:text-4xl">
+            Imóveis disponíveis
+          </h1>
+        </div>
+      </div>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-6 lg:gap-8">
+          <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
+            <div className="h-96 rounded-2xl skeleton" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-2xl overflow-hidden bg-white border border-[#e2e6ed]">
+                  <div className="h-52 skeleton" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-3 w-1/3 skeleton rounded" />
+                    <div className="h-5 w-full skeleton rounded" />
+                    <div className="h-3 w-1/2 skeleton rounded" />
+                    <div className="h-8 skeleton rounded-xl mt-4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImoveisContent() {
-  useSearchParams(); // manter tracking de params sem causar re-fetch
+  useSearchParams(); // mantém esta árvore atrelada ao Suspense (necessário p/ leitura de query string em produção)
 
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -69,6 +116,10 @@ function ImoveisContent() {
     startTransition(() => setSort(value));
   };
 
+  if (initialLoading) {
+    return <ImoveisPageSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
       {/* Header */}
@@ -84,12 +135,10 @@ function ImoveisContent() {
               <h1 className="font-display font-extrabold text-[#0B2344] text-3xl sm:text-4xl">
                 Imóveis disponíveis
               </h1>
-              {!initialLoading && (
-                <p className="text-[#0B2344]/40 mt-1 text-sm flex items-center gap-1.5">
-                  {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#C79A3B]" />}
-                  {results.length} imóvel{results.length !== 1 ? "is" : ""} encontrado{results.length !== 1 ? "s" : ""}
-                </p>
-              )}
+              <p className="text-[#0B2344]/40 mt-1 text-sm flex items-center gap-1.5">
+                {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#C79A3B]" />}
+                {results.length} imóvel{results.length !== 1 ? "is" : ""} encontrado{results.length !== 1 ? "s" : ""}
+              </p>
             </div>
           </div>
         </div>
@@ -99,7 +148,7 @@ function ImoveisContent() {
         <div className="flex gap-6 lg:gap-8">
 
           {/* Filtros — não causam mais re-fetch */}
-          <Suspense fallback={null}>
+          <Suspense fallback={<div className="hidden lg:block w-64 xl:w-72 flex-shrink-0"><div className="h-96 rounded-2xl skeleton" /></div>}>
             <PropertyFilters
               onFiltersChange={handleFiltersChange}
               totalResults={results.length}
@@ -151,22 +200,7 @@ function ImoveisContent() {
               </div>
             </div>
 
-            {/* Skeleton de carregamento inicial (apenas na primeira vez) */}
-            {initialLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="rounded-2xl overflow-hidden bg-white border border-[#e2e6ed]">
-                    <div className="h-52 skeleton" />
-                    <div className="p-4 space-y-3">
-                      <div className="h-3 w-1/3 skeleton rounded" />
-                      <div className="h-5 w-full skeleton rounded" />
-                      <div className="h-3 w-1/2 skeleton rounded" />
-                      <div className="h-8 skeleton rounded-xl mt-4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : results.length === 0 ? (
+            {results.length === 0 ? (
               <AnimatePresence mode="wait">
                 <motion.div
                   key="empty"
@@ -234,7 +268,7 @@ function ImoveisContent() {
 
 export default function ImoveisPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<ImoveisPageSkeleton />}>
       <ImoveisContent />
     </Suspense>
   );
