@@ -1,5 +1,10 @@
 /**
- * Upload de imagens para Supabase Storage via XHR (progresso real).
+ * Upload de imagens para Supabase Storage usando o SDK oficial.
+ *
+ * Usa supabase.storage.upload() (em vez de XHR manual) para garantir
+ * que headers de autenticação/CORS sejam sempre os corretos — a SDK
+ * usa fetch() internamente e não expõe progresso real por bytes, por
+ * isso simulamos uma barra de progresso suave enquanto aguarda.
  */
 
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -13,7 +18,6 @@ export interface UploadResult {
 
 /**
  * Faz upload de um arquivo para o Supabase Storage.
- * Usa XHR diretamente para rastrear progresso em tempo real.
  * Retorna a URL pública, ou o motivo do erro para exibir ao usuário.
  */
 export async function uploadPropertyImage(
@@ -27,62 +31,43 @@ export async function uploadPropertyImage(
     return { url: URL.createObjectURL(file) };
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
   // Gera nome de arquivo único
   const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
   const safeExt = ["jpg", "jpeg", "png", "webp", "avif"].includes(ext) ? ext : "jpg";
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
   const storagePath = `properties/${propertyId}/${filename}`;
 
-  return new Promise<UploadResult>((resolve) => {
-    const xhr = new XMLHttpRequest();
+  // Progresso simulado: a SDK não expõe progresso real por bytes (usa fetch)
+  let simulated = 8;
+  onProgress?.(simulated);
+  const progressTimer = setInterval(() => {
+    simulated = Math.min(simulated + Math.random() * 12 + 3, 90);
+    onProgress?.(Math.round(simulated));
+  }, 220);
 
-    // Progresso real do upload
-    xhr.upload.addEventListener("progress", (e) => {
-      if (e.lengthComputable) {
-        onProgress?.(Math.min(95, Math.round((e.loaded / e.total) * 95)));
-      }
+  try {
+    const { error } = await supabase.storage.from(BUCKET).upload(storagePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || "image/jpeg",
     });
 
-    xhr.addEventListener("load", () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress?.(100);
-        // Constrói URL pública manualmente (evita chamada extra ao Supabase)
-        const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${storagePath}`;
-        resolve({ url: publicUrl });
-      } else {
-        let detail = `Erro HTTP ${xhr.status}`;
-        try {
-          const body = JSON.parse(xhr.responseText);
-          detail = body.message ?? body.error ?? detail;
-        } catch { /* ignore */ }
-        console.error(`[Storage] Upload falhou: ${detail} | ${storagePath}`);
-        resolve({ url: null, error: detail });
-      }
-    });
+    clearInterval(progressTimer);
 
-    xhr.addEventListener("error", () => {
-      const msg = "Erro de rede ao enviar a imagem";
-      console.error(`[Storage] ${msg}:`, storagePath);
-      resolve({ url: null, error: msg });
-    });
+    if (error) {
+      console.error(`[Storage] Upload falhou: ${error.message} | ${storagePath}`);
+      return { url: null, error: error.message };
+    }
 
-    xhr.addEventListener("abort", () => {
-      console.warn("[Storage] Upload abortado:", storagePath);
-      resolve({ url: null, error: "Upload cancelado" });
-    });
-
-    // Endpoint do Supabase Storage
-    const endpoint = `${supabaseUrl}/storage/v1/object/${BUCKET}/${storagePath}`;
-    xhr.open("POST", endpoint);
-    xhr.setRequestHeader("Authorization", `Bearer ${anonKey}`);
-    xhr.setRequestHeader("apikey", anonKey); // obrigatório p/ o gateway do Supabase (Kong) — sem isso, 401 silencioso
-    xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
-    xhr.setRequestHeader("x-upsert", "false");
-    xhr.send(file); // Envia o arquivo como raw bytes
-  });
+    onProgress?.(100);
+    const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+    return { url: data.publicUrl };
+  } catch (e) {
+    clearInterval(progressTimer);
+    const msg = e instanceof Error ? e.message : "Erro desconhecido no upload";
+    console.error(`[Storage] Exceção no upload: ${msg} | ${storagePath}`);
+    return { url: null, error: msg };
+  }
 }
 
 /**

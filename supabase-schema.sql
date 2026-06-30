@@ -202,7 +202,7 @@ INSERT INTO properties (
   ARRAY['1 suíte','Sacada','Área gourmet','Churrasqueira','Jardim de inverno','2 vagas','Aceita FGTS'],
   false, true, 'Médio-alto padrão', NOW() - INTERVAL '10 days'
 )
-ON CONFLICT (slug) DO NOTHING;
+ON CONFLICT DO NOTHING; -- ignora conflito em QUALQUER coluna única (slug OU code) — protege contra edições feitas no painel
 
 -- ── Verificação rápida ───────────────────────────────────────────
 -- Rode estas duas consultas separadamente para conferir se está tudo certo:
