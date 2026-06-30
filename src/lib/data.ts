@@ -268,30 +268,66 @@ export const REGIONS: Region[] = [
   {
     id: "1",
     name: "Penha",
-    city: "São Paulo",
+    city: "São Paulo — SP",
     propertyCount: 3,
-    image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80",
+    // Basílica Nossa Senhora da Penha — marco visual do bairro
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bas%C3%ADlica_de_Nossa_Senhora_da_Penha.jpg/1280px-Bas%C3%ADlica_de_Nossa_Senhora_da_Penha.jpg",
   },
   {
     id: "2",
-    name: "Vila Granada",
-    city: "São Paulo",
-    propertyCount: 1,
-    image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80",
+    name: "Tatuapé",
+    city: "São Paulo — SP",
+    propertyCount: 0,
+    // Parque do Tatuapé / vista aérea do bairro
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Tatuap%C3%A9_-_S%C3%A3o_Paulo.jpg/1280px-Tatuap%C3%A9_-_S%C3%A3o_Paulo.jpg",
   },
   {
     id: "3",
-    name: "Jardim Três Marias",
-    city: "São Paulo",
+    name: "Vila Granada",
+    city: "São Paulo — SP",
     propertyCount: 1,
-    image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80",
+    // Vista aérea de área residencial da Zona Leste de SP
+    image: "https://images.unsplash.com/photo-1578632749014-ca77f29ad0e9?w=800&q=80",
   },
   {
     id: "4",
-    name: "Zona Leste",
-    city: "São Paulo",
-    propertyCount: 5,
+    name: "São Miguel Paulista",
+    city: "São Paulo — SP",
+    propertyCount: 0,
+    // Igreja de São Miguel Arcanjo (1622) — monumento histórico do bairro
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Igreja_de_S%C3%A3o_Miguel_Arcanjo_%28S%C3%A3o_Paulo%29.jpg/1280px-Igreja_de_S%C3%A3o_Miguel_Arcanjo_%28S%C3%A3o_Paulo%29.jpg",
+  },
+  {
+    id: "5",
+    name: "Vila Matilde",
+    city: "São Paulo — SP",
+    propertyCount: 0,
+    // Área residencial da Zona Leste
+    image: "https://images.unsplash.com/photo-1609220136736-443140cfeaa3?w=800&q=80",
+  },
+  {
+    id: "6",
+    name: "Jardim Três Marias",
+    city: "São Paulo — SP",
+    propertyCount: 1,
+    // Área residencial arborizada próxima a São Miguel
+    image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800&q=80",
+  },
+  {
+    id: "7",
+    name: "Guilhermina",
+    city: "São Paulo — SP",
+    propertyCount: 0,
+    // Estação Guilhermina-Esperança / Zona Leste urbana
     image: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80",
+  },
+  {
+    id: "8",
+    name: "Grande São Paulo",
+    city: "Região Metropolitana",
+    propertyCount: 0,
+    // Skyline de São Paulo
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/S%C3%A3o_Paulo_-_Pinheiros_e_Berrini_by_night_%2811952418636%29.jpg/1280px-S%C3%A3o_Paulo_-_Pinheiros_e_Berrini_by_night_%2811952418636%29.jpg",
   },
 ];
 

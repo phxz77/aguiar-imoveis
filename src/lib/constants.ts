@@ -108,37 +108,145 @@ export const NAV_LINKS = [
   { href: "/contato", label: "Contato" },
 ];
 
-export const FEATURES_LIST = [
-  "Suíte master",
-  "Suíte",
-  "Varanda",
-  "Sacada",
-  "Churrasqueira",
-  "Área gourmet",
-  "Jardim de inverno",
-  "Lavabo",
-  "Lavanderia",
-  "Área de serviço",
-  "Quintal",
-  "Jardim",
-  "Piscina",
-  "Academia",
-  "Salão de festas",
-  "Playground",
-  "Portaria 24h",
-  "Câmeras de segurança",
-  "Interfone",
-  "Elevador",
-  "Gerador",
-  "Armários planejados",
-  "Ar-condicionado",
-  "Jacuzzi",
-  "Escada em vidro",
-  "Cobertura em vidro",
-  "Aceita permuta",
-  "Aceita financiamento",
-  "Documentação ok",
-  "2 vagas",
-  "3 vagas",
-  "4 vagas",
+// ── Características categorizadas ───────────────────────────────
+// Estrutura escalável: adicione novas categorias ou opções aqui
+// sem alterar nenhum outro arquivo. O banco armazena TEXT[] com
+// os valores selecionados, compatível com as opções antigas.
+
+export interface FeatureCategory {
+  id: string;
+  label: string;
+  emoji: string;
+  options: string[];
+}
+
+export const FEATURES_CATEGORIES: FeatureCategory[] = [
+  {
+    id: "garagem",
+    label: "Garagem",
+    emoji: "🚗",
+    options: [
+      "Sem vaga",
+      "1 vaga",
+      "2 vagas",
+      "3 vagas",
+      "4 vagas",
+      "5 ou mais vagas",
+      "Vaga coberta",
+      "Vaga descoberta",
+      "Vaga para moto",
+    ],
+  },
+  {
+    id: "area_externa",
+    label: "Área Externa",
+    emoji: "🌿",
+    options: [
+      "Quintal",
+      "Jardim",
+      "Jardim de inverno",
+      "Área gourmet",
+      "Churrasqueira",
+      "Piscina",
+      "Jacuzzi",
+      "Varanda",
+      "Sacada",
+      "Terraço",
+      "Rooftop",
+    ],
+  },
+  {
+    id: "suites_quartos",
+    label: "Suítes & Quartos",
+    emoji: "🛏️",
+    options: [
+      "Suíte master",
+      "1 suíte",
+      "2 suítes",
+      "3 suítes",
+      "Closet",
+      "Quarto de serviço",
+    ],
+  },
+  {
+    id: "acabamento",
+    label: "Acabamento",
+    emoji: "✨",
+    options: [
+      "Alto padrão",
+      "Altíssimo padrão",
+      "Piso porcelanato",
+      "Piso laminado",
+      "Piso cerâmico",
+      "Escada em vidro",
+      "Cobertura em vidro",
+      "Iluminação em LED",
+      "Móveis planejados",
+      "Cozinha planejada",
+      "Armários planejados",
+    ],
+  },
+  {
+    id: "conforto",
+    label: "Conforto",
+    emoji: "🏠",
+    options: [
+      "Ar-condicionado",
+      "Preparação para ar-condicionado",
+      "Lavanderia",
+      "Lavabo",
+      "Área de serviço",
+      "Despensa",
+      "Depósito",
+      "Escritório",
+      "Home Office",
+      "Sala de TV",
+      "Gerador",
+    ],
+  },
+  {
+    id: "seguranca",
+    label: "Segurança",
+    emoji: "🔒",
+    options: [
+      "Condomínio fechado",
+      "Portaria 24 horas",
+      "Portão eletrônico",
+      "Cerca elétrica",
+      "Sistema de câmeras",
+      "Interfone",
+      "Alarme",
+    ],
+  },
+  {
+    id: "lazer_condominio",
+    label: "Lazer / Condomínio",
+    emoji: "🎾",
+    options: [
+      "Academia",
+      "Salão de festas",
+      "Playground",
+      "Quadra esportiva",
+      "Elevador",
+      "Condomínio pequeno",
+    ],
+  },
+  {
+    id: "documentacao",
+    label: "Documentação & Negociação",
+    emoji: "📄",
+    options: [
+      "Aceita financiamento",
+      "Aceita FGTS",
+      "Documentação OK",
+      "Aceita permuta",
+      "Aceita imóvel como parte do pagamento",
+      "Pronto para morar",
+    ],
+  },
 ];
+
+// Flat list derivada das categorias — usada na exibição pública do imóvel.
+// Adicionando opções customizadas que não estejam nas categorias,
+// elas ainda serão exibidas normalmente (retrocompatível).
+export const FEATURES_LIST = FEATURES_CATEGORIES.flatMap((c) => c.options);
