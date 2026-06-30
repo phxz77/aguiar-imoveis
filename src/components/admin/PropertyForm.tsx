@@ -185,25 +185,25 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
   return (
     <form onSubmit={handleSubmit} className="p-4 sm:p-6 max-w-4xl mx-auto space-y-5 pb-12">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display font-bold text-[#0B2344] text-2xl">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display font-bold text-[#0B2344] text-xl sm:text-2xl truncate">
             {mode === "create" ? "Novo imóvel" : "Editar imóvel"}
           </h1>
-          <p className="text-[#0B2344]/45 text-sm mt-0.5">
+          <p className="text-[#0B2344]/45 text-xs sm:text-sm mt-0.5 truncate">
             {mode === "create" ? "Preencha os dados para cadastrar" : property?.title}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button type="button" variant="outline" size="sm" onClick={() => router.push("/admin/imoveis")}>
-            <X className="h-4 w-4 mr-1" />
-            Cancelar
+            <X className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Cancelar</span>
           </Button>
           <button
             type="submit"
             disabled={loading || saved}
             className={cn(
-              "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
+              "hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
               saved
                 ? "bg-emerald-600 text-white"
                 : "bg-[#0B2344] hover:bg-[#0B2344]/90 text-white disabled:opacity-60"
@@ -401,14 +401,14 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       </Section>
 
       {/* Submit footer */}
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <Button type="button" variant="outline" onClick={() => router.push("/admin/imoveis")}>
+      <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-2">
+        <Button type="button" variant="outline" onClick={() => router.push("/admin/imoveis")} className="w-full sm:w-auto">
           Cancelar
         </Button>
         <button
           type="submit"
           disabled={loading || saved}
-          className="inline-flex items-center gap-2 bg-[#0B2344] hover:bg-[#0B2344]/90 disabled:opacity-60 text-white font-bold px-8 py-3 rounded-xl transition-all duration-200"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#0B2344] hover:bg-[#0B2344]/90 disabled:opacity-60 text-white font-bold px-8 py-3 rounded-xl transition-all duration-200"
         >
           {loading ? (
             <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Salvando...</>

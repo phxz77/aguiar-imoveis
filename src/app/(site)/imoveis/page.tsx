@@ -59,7 +59,7 @@ function ImoveisPageSkeleton() {
         </div>
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
             <div className="h-96 rounded-2xl skeleton" />
           </div>
@@ -145,7 +145,7 @@ function ImoveisContent() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
 
           {/* Filtros — não causam mais re-fetch */}
           <Suspense fallback={<div className="hidden lg:block w-64 xl:w-72 flex-shrink-0"><div className="h-96 rounded-2xl skeleton" /></div>}>

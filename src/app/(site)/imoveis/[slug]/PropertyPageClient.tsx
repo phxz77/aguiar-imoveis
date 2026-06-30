@@ -102,7 +102,7 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
       {/* Breadcrumb */}
       <div className="bg-white border-b border-zinc-100 sticky top-16 lg:top-[72px] z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-zinc-500 overflow-hidden">
+          <div className="flex items-center gap-2 text-sm text-zinc-500 overflow-hidden min-w-0">
             <Link href="/" className="hover:text-zinc-900 transition-colors shrink-0">Home</Link>
             <span className="shrink-0">/</span>
             <Link href="/imoveis" className="hover:text-zinc-900 transition-colors shrink-0">Imóveis</Link>
