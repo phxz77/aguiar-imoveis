@@ -52,10 +52,18 @@ export function ContactPageClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate submission → redirect to WhatsApp
-    await new Promise((r) => setTimeout(r, 800));
-    const message = `Olá, Ediel! Meu nome é *${formData.name}*.\n\nInteresse: ${interests.find(i => i.value === formData.interest)?.label}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\n\nMensagem: ${formData.message}`;
-    window.open(`https://wa.me/${SITE_CONFIG.whatsapp}?text=${encodeURIComponent(message)}`, "_blank");
+
+    // 1. Envia notificação para o Telegram do corretor (silencioso se não configurado)
+    fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    }).catch(() => {/* falha silenciosa */});
+
+    // 2. Abre WhatsApp para o cliente finalizar o contato
+    const waMsg = `Olá, Ediel! Meu nome é *${formData.name}*.\n\nInteresse: ${interests.find(i => i.value === formData.interest)?.label}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\n\nMensagem: ${formData.message}`;
+    window.open(`https://wa.me/${SITE_CONFIG.whatsapp}?text=${encodeURIComponent(waMsg)}`, "_blank");
+
     setLoading(false);
     setSubmitted(true);
   };
