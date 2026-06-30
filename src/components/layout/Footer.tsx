@@ -61,7 +61,7 @@ export function Footer() {
       {/* CTA Banner */}
       <div className="border-t border-white/8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div>
+          <div className="text-center sm:text-left">
             <h2 className="font-display font-bold text-white text-2xl sm:text-3xl mb-1">
               Encontre seu próximo imóvel hoje.
             </h2>

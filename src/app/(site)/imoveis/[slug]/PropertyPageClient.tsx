@@ -98,9 +98,9 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
           : "Reservado";
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-zinc-50 pt-16 lg:pt-[72px]">
       {/* Breadcrumb */}
-      <div className="bg-white border-b border-zinc-100 sticky top-16 z-30">
+      <div className="bg-white border-b border-zinc-100 sticky top-16 lg:top-[72px] z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-zinc-500 overflow-hidden">
             <Link href="/" className="hover:text-zinc-900 transition-colors shrink-0">Home</Link>
@@ -327,7 +327,7 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <div className="sticky top-28 space-y-4">
+            <div className="lg:sticky lg:top-28 space-y-4">
               <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-5">
                 <div className="text-center mb-5">
                   <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center font-display font-bold text-white text-2xl mx-auto mb-3">
@@ -456,23 +456,26 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
 
             <button
               onClick={(e) => { e.stopPropagation(); prevLightbox(); }}
-              className="absolute left-4 h-12 w-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              className="absolute left-1 sm:left-4 h-9 w-9 sm:h-12 sm:w-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); nextLightbox(); }}
-              className="absolute right-4 h-12 w-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              className="absolute right-1 sm:right-4 h-9 w-9 sm:h-12 sm:w-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
             >
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-4">
+            <div
+              className="absolute bottom-2 sm:bottom-4 left-0 right-0 flex gap-2 px-4 overflow-x-auto justify-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+              onClick={(e) => e.stopPropagation()}
+            >
               {property.images.map((img, i) => (
                 <button
                   key={i}
-                  onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
-                  className={`relative h-12 w-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
+                  onClick={() => setLightboxIndex(i)}
+                  className={`relative h-10 w-14 sm:h-12 sm:w-16 rounded-lg overflow-hidden flex-shrink-0 transition-all ${
                     i === lightboxIndex ? "ring-2 ring-white" : "opacity-50 hover:opacity-75"
                   }`}
                 >
