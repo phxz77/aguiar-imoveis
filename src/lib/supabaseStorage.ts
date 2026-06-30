@@ -37,8 +37,13 @@ export async function uploadPropertyImage(
   propertyId: string,
   onProgress?: (pct: number) => void
 ): Promise<UploadResult> {
+  const tag = "[UPLOAD-DEBUG]";
+  console.log(`${tag} Iniciando upload: nome="${file.name}" tamanho=${(file.size / 1024).toFixed(0)}KB tipo="${file.type}" propertyId="${propertyId}"`);
+  console.log(`${tag} isSupabaseConfigured =`, isSupabaseConfigured, "| supabase client existe =", !!supabase);
+
   // Sem Supabase configurado: retorna blob URL como preview local (não persiste)
   if (!isSupabaseConfigured || !supabase) {
+    console.warn(`${tag} Supabase NÃO está configurado — usando blob URL local (a imagem NÃO será salva de verdade).`);
     onProgress?.(100);
     return { url: URL.createObjectURL(file) };
   }
@@ -48,6 +53,7 @@ export async function uploadPropertyImage(
   const safeExt = ["jpg", "jpeg", "png", "webp", "avif"].includes(ext) ? ext : "jpg";
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
   const storagePath = `properties/${propertyId}/${filename}`;
+  console.log(`${tag} Caminho no Storage: "${storagePath}" | bucket="${BUCKET}"`);
 
   // Progresso simulado: a SDK não expõe progresso real por bytes (usa fetch)
   let simulated = 8;
@@ -58,6 +64,9 @@ export async function uploadPropertyImage(
   }, 220);
 
   try {
+    console.log(`${tag} Chamando supabase.storage.from("${BUCKET}").upload(...) agora...`);
+    const t0 = Date.now();
+
     const { error } = await withTimeout(
       supabase.storage.from(BUCKET).upload(storagePath, file, {
         cacheControl: "3600",
@@ -68,20 +77,24 @@ export async function uploadPropertyImage(
       "Tempo esgotado ao enviar a imagem. Verifique sua conexão e tente novamente."
     );
 
+    console.log(`${tag} supabase.storage.upload() retornou após ${Date.now() - t0}ms`);
     clearInterval(progressTimer);
 
     if (error) {
-      console.error(`[Storage] Upload falhou: ${error.message} | ${storagePath}`);
+      console.error(`${tag} ERRO retornado pelo Supabase:`, error);
+      console.error(`${tag} Detalhe: ${error.message} | path: ${storagePath}`);
       return { url: null, error: error.message };
     }
 
     onProgress?.(100);
     const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+    console.log(`${tag} SUCESSO. URL pública: ${data.publicUrl}`);
     return { url: data.publicUrl };
   } catch (e) {
     clearInterval(progressTimer);
     const msg = e instanceof Error ? e.message : "Erro desconhecido no upload";
-    console.error(`[Storage] Exceção no upload: ${msg} | ${storagePath}`);
+    console.error(`${tag} EXCEÇÃO capturada:`, e);
+    console.error(`${tag} Mensagem: ${msg} | path: ${storagePath}`);
     return { url: null, error: msg };
   }
 }
