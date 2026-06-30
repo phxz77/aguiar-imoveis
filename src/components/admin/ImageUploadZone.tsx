@@ -41,8 +41,6 @@ interface ImageUploadZoneProps {
 }
 
 export function ImageUploadZone({ images, onChange, propertyId, onUploadingChange }: ImageUploadZoneProps) {
-  console.log("[UPLOAD-DEBUG] ImageUploadZone montado/renderizado. propertyId=", propertyId, "| imagens existentes=", images.length, images);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [urlInput, setUrlInput] = useState("");
@@ -69,11 +67,7 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
 
   const uploadFile = useCallback(
     async (item: ImageItem) => {
-      console.log(`[UPLOAD-DEBUG] uploadFile() chamado para item id="${item.id}" — tem arquivo?`, !!item.file);
-      if (!item.file) {
-        console.warn(`[UPLOAD-DEBUG] item "${item.id}" não tem item.file — abortando (não deveria acontecer)`);
-        return;
-      }
+      if (!item.file) return;
 
       const updateItem = (patch: Partial<ImageItem>) =>
         setItems((prev) =>
@@ -85,8 +79,6 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
       const { url, error } = await uploadPropertyImage(item.file, propertyId, (pct) => {
         updateItem({ progress: pct });
       });
-
-      console.log(`[UPLOAD-DEBUG] uploadFile() recebeu resultado para "${item.id}":`, { url, error });
 
       if (url) {
         setItems((prev) => {
@@ -107,7 +99,6 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
 
   const processFiles = useCallback(
     (files: FileList | File[]) => {
-      console.log(`[UPLOAD-DEBUG] processFiles() chamado com`, files.length, "arquivo(s)");
       const fileArray = Array.from(files);
       const wrongType = fileArray.filter((f) => !f.type.startsWith("image/"));
       const tooLarge = fileArray.filter((f) => f.type.startsWith("image/") && f.size > MAX_FILE_SIZE);
@@ -121,12 +112,7 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
         setTimeout(() => setRejectionMsg(null), 6000);
       }
 
-      console.log(`[UPLOAD-DEBUG] válidos: ${valid.length} | tipo errado: ${wrongType.length} | grande demais: ${tooLarge.length}`);
-
-      if (valid.length === 0) {
-        console.warn("[UPLOAD-DEBUG] Nenhum arquivo válido — nada será enviado.");
-        return;
-      }
+      if (valid.length === 0) return;
 
       const newItems: ImageItem[] = valid.map((file) => ({
         id: `new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -137,15 +123,10 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
         progress: 0,
       }));
 
-      console.log(`[UPLOAD-DEBUG] Criando ${newItems.length} item(ns) e chamando uploadFile() para cada um...`);
       setItems((prev) => [...prev, ...newItems]);
 
-      // Upload em paralelo
-      newItems.forEach((item) => {
-        uploadFile(item).catch((e) => {
-          console.error(`[UPLOAD-DEBUG] uploadFile() REJEITOU (não deveria) para "${item.id}":`, e);
-        });
-      });
+      // Upload em paralelo — .catch() captura rejeições inesperadas
+      newItems.forEach((item) => { uploadFile(item).catch(console.error); });
     },
     [uploadFile]
   );

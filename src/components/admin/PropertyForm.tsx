@@ -15,6 +15,45 @@ import { generateCode } from "@/lib/utils";
 import { generatePropertyId } from "@/lib/supabaseStorage";
 import { cn } from "@/lib/utils";
 
+// ── Componentes auxiliares fora do PropertyForm ─────────────────
+// CRÍTICO: definir esses componentes FORA evita que React os trate como
+// novos tipos a cada re-render, o que causava unmount/remount do
+// ImageUploadZone no meio do upload, perdendo o estado das fotos.
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-2xl border border-[#e2e6ed] shadow-sm p-5 sm:p-6 space-y-4">
+      <h2 className="font-display font-semibold text-[#0B2344] border-b border-[#e2e6ed] pb-3 text-sm uppercase tracking-wide">
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
+
+function Row({ children, cols = 2 }: { children: React.ReactNode; cols?: number }) {
+  return (
+    <div className={cn("grid gap-4", {
+      "grid-cols-1 sm:grid-cols-2": cols === 2,
+      "grid-cols-1 sm:grid-cols-3": cols === 3,
+      "grid-cols-2 sm:grid-cols-4": cols === 4,
+    })}>
+      {children}
+    </div>
+  );
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-[#0B2344]/70 mb-1.5">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
 interface PropertyFormProps {
   property?: Property;
   mode: "create" | "edit";
@@ -175,34 +214,6 @@ export function PropertyForm({ property, mode }: PropertyFormProps) {
       setLoading(false);
     }
   };
-
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="bg-white rounded-2xl border border-[#e2e6ed] shadow-sm p-5 sm:p-6 space-y-4">
-      <h2 className="font-display font-semibold text-[#0B2344] border-b border-[#e2e6ed] pb-3 text-sm uppercase tracking-wide">
-        {title}
-      </h2>
-      {children}
-    </div>
-  );
-
-  const Row = ({ children, cols = 2 }: { children: React.ReactNode; cols?: number }) => (
-    <div className={cn("grid gap-4", {
-      "grid-cols-1 sm:grid-cols-2": cols === 2,
-      "grid-cols-1 sm:grid-cols-3": cols === 3,
-      "grid-cols-2 sm:grid-cols-4": cols === 4,
-    })}>
-      {children}
-    </div>
-  );
-
-  const Field = ({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) => (
-    <div>
-      <label className="block text-sm font-medium text-[#0B2344]/70 mb-1.5">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      {children}
-    </div>
-  );
 
   return (
     <form onSubmit={handleSubmit} className="p-4 sm:p-6 max-w-4xl mx-auto space-y-5 pb-12">
