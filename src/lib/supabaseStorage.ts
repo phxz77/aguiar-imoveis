@@ -6,20 +6,25 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const BUCKET = "property-images";
 
+export interface UploadResult {
+  url: string | null;
+  error?: string;
+}
+
 /**
  * Faz upload de um arquivo para o Supabase Storage.
  * Usa XHR diretamente para rastrear progresso em tempo real.
- * Retorna a URL pública ou null em caso de erro.
+ * Retorna a URL pública, ou o motivo do erro para exibir ao usuário.
  */
 export async function uploadPropertyImage(
   file: File,
   propertyId: string,
   onProgress?: (pct: number) => void
-): Promise<string | null> {
+): Promise<UploadResult> {
   // Sem Supabase configurado: retorna blob URL como preview local (não persiste)
   if (!isSupabaseConfigured || !supabase) {
     onProgress?.(100);
-    return URL.createObjectURL(file);
+    return { url: URL.createObjectURL(file) };
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -31,7 +36,7 @@ export async function uploadPropertyImage(
   const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
   const storagePath = `properties/${propertyId}/${filename}`;
 
-  return new Promise<string | null>((resolve) => {
+  return new Promise<UploadResult>((resolve) => {
     const xhr = new XMLHttpRequest();
 
     // Progresso real do upload
@@ -46,32 +51,34 @@ export async function uploadPropertyImage(
         onProgress?.(100);
         // Constrói URL pública manualmente (evita chamada extra ao Supabase)
         const publicUrl = `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${storagePath}`;
-        resolve(publicUrl);
+        resolve({ url: publicUrl });
       } else {
-        let detail = `HTTP ${xhr.status}`;
+        let detail = `Erro HTTP ${xhr.status}`;
         try {
           const body = JSON.parse(xhr.responseText);
           detail = body.message ?? body.error ?? detail;
         } catch { /* ignore */ }
         console.error(`[Storage] Upload falhou: ${detail} | ${storagePath}`);
-        resolve(null);
+        resolve({ url: null, error: detail });
       }
     });
 
     xhr.addEventListener("error", () => {
-      console.error("[Storage] Erro de rede:", storagePath);
-      resolve(null);
+      const msg = "Erro de rede ao enviar a imagem";
+      console.error(`[Storage] ${msg}:`, storagePath);
+      resolve({ url: null, error: msg });
     });
 
     xhr.addEventListener("abort", () => {
       console.warn("[Storage] Upload abortado:", storagePath);
-      resolve(null);
+      resolve({ url: null, error: "Upload cancelado" });
     });
 
     // Endpoint do Supabase Storage
     const endpoint = `${supabaseUrl}/storage/v1/object/${BUCKET}/${storagePath}`;
     xhr.open("POST", endpoint);
     xhr.setRequestHeader("Authorization", `Bearer ${anonKey}`);
+    xhr.setRequestHeader("apikey", anonKey); // obrigatório p/ o gateway do Supabase (Kong) — sem isso, 401 silencioso
     xhr.setRequestHeader("Content-Type", file.type || "image/jpeg");
     xhr.setRequestHeader("x-upsert", "false");
     xhr.send(file); // Envia o arquivo como raw bytes

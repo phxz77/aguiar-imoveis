@@ -76,7 +76,7 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
 
       updateItem({ status: "uploading", progress: 5 });
 
-      const url = await uploadPropertyImage(item.file, propertyId, (pct) => {
+      const { url, error } = await uploadPropertyImage(item.file, propertyId, (pct) => {
         updateItem({ progress: pct });
       });
 
@@ -91,7 +91,7 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
           return next;
         });
       } else {
-        updateItem({ status: "error", errorMsg: "Falha no upload" });
+        updateItem({ status: "error", errorMsg: error || "Falha no upload" });
       }
     },
     [propertyId, notify]
@@ -414,9 +414,9 @@ export function ImageUploadZone({ images, onChange, propertyId, onUploadingChang
 
                 {/* Overlay de erro */}
                 {item.status === "error" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/70 gap-1">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-900/70 gap-1 px-2 text-center">
                     <AlertCircle className="h-5 w-5 text-red-300" />
-                    <p className="text-red-200 text-[11px] font-medium">Falha no upload</p>
+                    <p className="text-red-200 text-[11px] font-medium leading-snug">{item.errorMsg || "Falha no upload"}</p>
                     <button
                       type="button"
                       onClick={() => retryItem(item.id)}
